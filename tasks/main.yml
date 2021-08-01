@@ -1,0 +1,62 @@
+---
+- name: install necessary packages
+  apt:
+    name: openjdk-8-jdk
+    force_apt_get: yes
+    update_cache: yes
+
+- name: create nexus group
+  group:
+    name: nexus
+    system: yes
+
+- name: create nexus user
+  user:
+    name: nexus
+    system: yes
+    create_home: no
+    home: /opt/nexus
+    shell: /bin/bash
+
+- name: create sudoer config file
+  file:
+    state: touch
+    path: /etc/sudoers.d/nexus
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: add nexus user to sudoer config file
+  lineinfile:
+    state: present
+    path: /etc/sudoers.d/nexus
+    line: 'nexus ALL=(ALL) NOPASSWD: ALL'
+
+- name: create nexus necessary directories
+  file:
+    state: directory
+    path: '{{ nexus_home_path }}'
+    owner: nexus
+    group: nexus
+    mode: '0655'
+
+- name: download and extract nexus package
+  become: yes
+  become_method: sudo
+  become_user: nexus
+  unarchive:
+    src: "https://sonatype-download.global.ssl.fastly.net/repository/downloads-prod-group/3/nexus-{{ nexus_version }}-unix.tar.gz"
+    remote_src: yes
+    dest: '{{ nexus_home_path }}'
+  environment:
+    http_proxy: '{{ proxy.http }}'
+    https_proxy: '{{ proxy.https | default(proxy.http) }}'
+
+- name: add systemd unit file
+  file:
+    src: nexus.service
+    dest: /lib/systemd/system/nexus.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: enable and start the nexus service

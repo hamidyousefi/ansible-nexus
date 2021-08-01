@@ -1,0 +1,15 @@
+---
+galaxy_info:
+  role_name: nexus
+  author: Hamid Yousefi
+  description: Sonatype Nexus Repository
+  license: GPL-2.0-or-later
+  min_ansible_version: 2.8
+  platforms:
+    - name: Ubuntu
+      versions:
+        - Focal Fossa
+  galaxy_tags:
+    - linux
+    - repository
+    - nexus
