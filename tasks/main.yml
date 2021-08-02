@@ -41,19 +41,20 @@
     mode: '0655'
 
 - name: download and extract nexus package
-  become: yes
-  become_method: sudo
-  become_user: nexus
   unarchive:
     src: "https://sonatype-download.global.ssl.fastly.net/repository/downloads-prod-group/3/nexus-{{ nexus_version }}-unix.tar.gz"
     remote_src: yes
     dest: '{{ nexus_home_path }}'
+    owner: nexus
+    group: nexus
+    extra_opts:
+      - '--strip-components=1'
   environment:
     http_proxy: '{{ proxy.http }}'
     https_proxy: '{{ proxy.https | default(proxy.http) }}'
 
 - name: add systemd unit file
-  file:
+  copy:
     src: nexus.service
     dest: /lib/systemd/system/nexus.service
     owner: root
